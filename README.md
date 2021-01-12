@@ -14,4 +14,5 @@
 ## Usage
 1. Use one of the included commands (e.g. `!stopsound`) to toggle ambient sounds (map music).
     - Settings are stored using ClientPrefs and will transfer across sessions.
-    - The default setting is ambient sounds __on__.
+    - When the command is executed, any currently playing and future ambient sounds will be muted.
+    - The default setting is ambient sounds __enabled__.
