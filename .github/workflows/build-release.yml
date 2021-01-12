@@ -60,7 +60,7 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ${{ env.reponame }}.zip
-          asset_name: ${{ env.reponame }}-${{ env.shortsha }}.zip
+          asset_name: ${{ env.reponame }}-${{ env.revcount }}-${{ env.shortsha }}.zip
           asset_content_type: application/zip
 
       - name: Create Tarball
@@ -73,5 +73,5 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ${{ env.reponame }}.tar.gz
-          asset_name: ${{ env.reponame }}-${{ env.shortsha }}.tar.gz
+          asset_name: ${{ env.reponame }}-${{ env.revcount }}-${{ env.shortsha }}.tar.gz
           asset_content_type: application/gzip
