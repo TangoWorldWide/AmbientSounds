@@ -1,0 +1,77 @@
+name: Build & Release
+ 
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+         fetch-depth: 0
+
+      - name: Get Repository Name
+        run: echo "reponame=$(echo '${{ github.repository }}' | awk -F '/' '{print $2}')" >> $GITHUB_ENV
+
+      - name: Get Short SHA
+        run: echo "shortsha=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+
+      - name: Get Revision Count
+        run: echo "revcount=$(git rev-list --count HEAD)" >> $GITHUB_ENV
+
+      - name: Setup SourcePawn Compiler
+        uses: rumblefrog/setup-sp@master
+        with:
+          version: '1.10.x'
+
+      - name: Compile Plugins
+        run: |
+          mkdir plugins
+          for sp in scripting/*.sp
+          do
+            echo -e "\n\nCompiling ${sp##*/}..."
+            spcomp -E -v2 -i./scripting/include -o./plugins/$(basename $sp .sp).smx $sp
+          done
+          ls -la
+          rm -r scripting
+        working-directory: addons/sourcemod
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+         tag_name: ${{ env.revcount }}
+         release_name: Revision ${{ env.revcount }}
+
+      - name: Create ZIP
+        run: zip -r ${{ env.reponame }}.zip addons
+
+      - name: Upload ZIP
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ env.reponame }}.zip
+          asset_name: ${{ env.reponame }}-${{ env.shortsha }}.zip
+          asset_content_type: application/zip
+
+      - name: Create Tarball
+        run: tar -czvf ${{ env.reponame }}.tar.gz addons
+
+      - name: Upload Tarball
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ env.reponame }}.tar.gz
+          asset_name: ${{ env.reponame }}-${{ env.shortsha }}.tar.gz
+          asset_content_type: application/gzip
